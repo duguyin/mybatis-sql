@@ -50,8 +50,10 @@ public class LogicFragment {
         // 再解析子条件片段
         if(childrenSize > 0){
             for(int i = 0; i < childrenSize; i ++){
-                
-                fragment.append(logicOperators.get(i + index).getOperator());
+
+                if(size > 0){
+                    fragment.append(logicOperators.get(i + index).getOperator());
+                }
                 final LogicFragment logicFragment = children.get(i);
                 boolean hasMany = logicFragment.compareFragments.size() > 1;
                 if(hasMany){
@@ -60,6 +62,9 @@ public class LogicFragment {
                 logicFragment.toSqlFragment(fragment);
                 if(hasMany){
                     fragment.append(" ) ");
+                }
+                if(size == 0 && i < childrenSize - 1){
+                    fragment.append(logicOperators.get(i + index).getOperator());
                 }
             }
         }
@@ -99,9 +104,9 @@ public class LogicFragment {
         return this;
     }
 
-    private LogicFragment addChild(LogicFragment logicFragment, LogicOperator logicOperator){
+    public LogicFragment addChild(LogicFragment logicFragment, LogicOperator logicOperator){
         children.add(logicFragment);
-        if(Objects.nonNull(logicOperators)){
+        if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
         return this;

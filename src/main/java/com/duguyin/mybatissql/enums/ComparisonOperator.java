@@ -15,6 +15,11 @@ public enum ComparisonOperator {
     GTE(" >= "),
     NEQ(" != "),
     LIKE(" LIKE "),
+    LEFT_LIKE(" LIKE "),
+    RIGTH_LIKE(" LIKE "),
+    BOTH_LIKE(" LIKE "),
+    IS_NULL(" IS NULL "),
+    IS_NOT_NULL(" IS NOT NULL "),
     ;
 
     String operator ;

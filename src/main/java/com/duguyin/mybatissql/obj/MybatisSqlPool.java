@@ -1,5 +1,6 @@
 package com.duguyin.mybatissql.obj;
 
+import com.duguyin.mybatissql.enums.LogicOperator;
 import com.duguyin.mybatissql.tool.Conditions;
 
 import java.util.HashMap;
@@ -51,10 +52,20 @@ public class MybatisSqlPool {
             return this;
         }
 
+        public MybatisSQL and(LogicFragment logicFragment){
+            this.logicFragment.addChild(logicFragment, LogicOperator.AND);
+            return this;
+        }
+
+        public MybatisSQL or(LogicFragment logicFragment){
+            this.logicFragment.addChild(logicFragment, LogicOperator.OR);
+            return this;
+        }
+
     }
 
     public static void main(String[] args) {
-        final MybatisSQL where = new MybatisSQL().where(Conditions.eq("dog").and(Conditions.eq("pig")));
+        final MybatisSQL where = new MybatisSQL().where(Conditions.eq("dog").and(Conditions.eq("pig")).and(Conditions.lt("cat")));
         System.out.println(where.logicFragment.toSqlFragment(new StringBuilder()));
     }
 
