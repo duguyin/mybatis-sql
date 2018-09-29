@@ -1,7 +1,9 @@
 package com.duguyin.mybatissql.obj;
 
+import com.duguyin.mybatissql.enums.ComparisonOperator;
 import com.duguyin.mybatissql.enums.LogicOperator;
 import com.duguyin.mybatissql.exceptions.ParseException;
+import com.duguyin.mybatissql.tool.StringTool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,67 @@ public class LogicFragment {
 
     public LogicFragment(CompareFragment compareFragment){
         add(compareFragment);
+    }
+
+    public LogicFragment(String sugar){
+        Objects.requireNonNull(sugar);
+        String[] split = sugar.split(".");
+        if(split.length == 0 || split.length > 2){
+            throw new ParseException("sugar format error");
+        }
+        String property = split[0];
+        if(StringTool.isNullOrEmpty(property)){
+            throw new ParseException("property is null or empty");
+        }
+        String operatorSugar = split.length < 2 ? null : split[1];
+
+        add(new CompareFragment().value(property).column(property).operator(createBySugar(operatorSugar)));
+
+    }
+
+    private ComparisonOperator createBySugar(String operatorSugar){
+        if(StringTool.isNullOrEmpty(operatorSugar)){
+            return ComparisonOperator.EQ;
+        }
+        switch (operatorSugar){
+            case "eq":
+            case "=":
+                return ComparisonOperator.EQ;
+            case "<":
+            case "lt":
+                return ComparisonOperator.LT;
+            case ">":
+            case "gt":
+                return ComparisonOperator.GT;
+            case "lte":
+            case "<=":
+                return ComparisonOperator.LTE;
+            case "gte":
+            case ">=":
+                return ComparisonOperator.GTE;
+            case "like":
+            case "_":
+                return ComparisonOperator.LIKE;
+            case "%like":
+            case "%_" :
+                return ComparisonOperator.LEFT_LIKE;
+            case "like%":
+            case "_%":
+                return ComparisonOperator.RIGTH_LIKE;
+            case "%like%":
+            case "%%":
+                return ComparisonOperator.BOTH_LIKE;
+            case "neq":
+            case "<>":
+            case "x":
+                return ComparisonOperator.NEQ;
+            case "n":
+                return ComparisonOperator.IS_NULL;
+            case "nn":
+                return ComparisonOperator.IS_NOT_NULL;
+            default:
+                throw new ParseException("operator is error:" + operatorSugar);
+        }
     }
 
 
