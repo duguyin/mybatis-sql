@@ -21,58 +21,58 @@ public class CompareFragment {
 
 
 
-    public CompareFragment eq(String property){
+    public static CompareFragment eq(String property){
         return eq(property, property);
     }
 
-    public CompareFragment lte(String property){
+    public static CompareFragment lte(String property){
         return lte(property, property);
     }
 
-    public CompareFragment lt(String property){
+    public static CompareFragment lt(String property){
         return lt(property, property);
     }
 
-    public CompareFragment gt(String property){
+    public static CompareFragment gt(String property){
         return gte(property, property);
     }
 
-    public CompareFragment gte(String property){
+    public static CompareFragment gte(String property){
         return gte(property, property);
     }
 
-    public CompareFragment neq(String property){
+    public static CompareFragment neq(String property){
         return neq(property, property);
     }
 
 
 
-    public CompareFragment eq(String column, String value){
+    public static CompareFragment eq(String column, String value){
         return create(column, ComparisonOperator.EQ, value);
     }
 
-    public CompareFragment lt(String column, String value){
+    public static CompareFragment lt(String column, String value){
         return create(column, ComparisonOperator.LT, value);
     }
 
-    public CompareFragment lte(String column, String value){
+    public static CompareFragment lte(String column, String value){
         return create(column, ComparisonOperator.LTE, value);
     }
 
-    public CompareFragment gt(String column, String value){
+    public static CompareFragment gt(String column, String value){
         return create(column, ComparisonOperator.GT, value);
     }
 
-    public CompareFragment gte(String column, String value){
+    public static CompareFragment gte(String column, String value){
         return create(column, ComparisonOperator.GTE, value);
     }
 
-    public CompareFragment neq(String column, String value){
+    public static CompareFragment neq(String column, String value){
         return create(column, ComparisonOperator.NEQ, value);
     }
 
 
-    private CompareFragment create(String column, ComparisonOperator comparisonOperator, String value){
+    private static CompareFragment create(String column, ComparisonOperator comparisonOperator, String value){
         return new CompareFragment().column(column).operator(comparisonOperator).value(value);
     }
 

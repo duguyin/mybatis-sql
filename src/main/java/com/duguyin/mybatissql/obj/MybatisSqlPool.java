@@ -15,6 +15,7 @@ import java.util.Map;
  */
 public class MybatisSqlPool {
 
+    public MybatisMapping mapping;
 
     private enum OP {
         INSERT("INSERT INTO"),
@@ -65,8 +66,14 @@ public class MybatisSqlPool {
     }
 
     public static void main(String[] args) {
-        final MybatisSQL where = new MybatisSQL().where(Conditions.eq("dog").and(Conditions.eq("pig")).and(Conditions.lt("cat")));
+        final MybatisSQL where = new MybatisSQL()
+                .where(new LogicFragment(CompareFragment.eq("dog")).and(CompareFragment.gte("pig")).and(CompareFragment.neq("cat"))
+                        .and(new LogicFragment(CompareFragment.eq("kjk")).and(CompareFragment.gte("psdfig")).and(CompareFragment.neq("ca43t"))))
+                .and(new LogicFragment(CompareFragment.eq("dog4")).and(CompareFragment.gte("pig3")).and(CompareFragment.neq("cat2")))
+                ;
         System.out.println(where.logicFragment.toSqlFragment(new StringBuilder()));
+
+
     }
 
 

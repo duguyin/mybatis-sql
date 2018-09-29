@@ -23,6 +23,11 @@ public class LogicFragment {
 
     public LogicFragment() {}
 
+    public LogicFragment(CompareFragment compareFragment){
+        add(compareFragment);
+    }
+
+
 
 
 
@@ -97,18 +102,18 @@ public class LogicFragment {
 
 
     private LogicFragment add(CompareFragment compareFragment, LogicOperator logicOperator){
-        compareFragments.add(compareFragment);
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
+        compareFragments.add(compareFragment);
         return this;
     }
 
     public LogicFragment addChild(LogicFragment logicFragment, LogicOperator logicOperator){
-        children.add(logicFragment);
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
+        children.add(logicFragment);
         return this;
     }
 
