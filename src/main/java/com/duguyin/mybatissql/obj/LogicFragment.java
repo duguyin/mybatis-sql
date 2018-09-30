@@ -7,6 +7,7 @@ import com.duguyin.mybatissql.tool.StringTool;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -17,21 +18,44 @@ import java.util.Objects;
  */
 public class LogicFragment {
 
-    List<CompareFragment> compareFragments = new ArrayList<>();
-    List<LogicFragment> children = new ArrayList<>();
-    List<LogicOperator> logicOperators = new ArrayList<>();
+    private Map<String, PropertyColumnMapping> mappingMap;
+    private List<CompareFragment> compareFragments = new ArrayList<>();
+    private List<LogicFragment> children = new ArrayList<>();
+    private List<LogicOperator> logicOperators = new ArrayList<>();
 
 //    int level = 0;
 
-    public LogicFragment() {}
+    public LogicFragment begin(String sugar){
+        return add(createCompareFragment(sugar));
+    }
+
+    public LogicFragment(Map<String, PropertyColumnMapping> mappingMap) {
+        Objects.requireNonNull(mappingMap);
+        this.mappingMap = mappingMap;
+    }
 
     public LogicFragment(CompareFragment compareFragment){
         add(compareFragment);
     }
 
+
+
     public LogicFragment(String sugar){
+        add(createCompareFragment(sugar));
+    }
+
+    public LogicFragment and(String sugar){
+        return and(createCompareFragment(sugar));
+    }
+
+    public LogicFragment or(String sugar){
+        return or(createCompareFragment(sugar));
+    }
+
+
+    private CompareFragment createCompareFragment(String sugar) {
         Objects.requireNonNull(sugar);
-        String[] split = sugar.split(".");
+        String[] split = sugar.split("\\.");
         if(split.length == 0 || split.length > 2){
             throw new ParseException("sugar format error");
         }
@@ -39,10 +63,10 @@ public class LogicFragment {
         if(StringTool.isNullOrEmpty(property)){
             throw new ParseException("property is null or empty");
         }
+
         String operatorSugar = split.length < 2 ? null : split[1];
 
-        add(new CompareFragment().value(property).column(property).operator(createBySugar(operatorSugar)));
-
+        return new CompareFragment().column(property).value(property).operator(createBySugar(operatorSugar));
     }
 
     private ComparisonOperator createBySugar(String operatorSugar){
@@ -91,7 +115,9 @@ public class LogicFragment {
     }
 
 
-
+    public String toSqlFragment(){
+        return toSqlFragment(new StringBuilder());
+    }
 
 
     public String toSqlFragment(StringBuilder fragment){
@@ -165,14 +191,24 @@ public class LogicFragment {
 
 
     private LogicFragment add(CompareFragment compareFragment, LogicOperator logicOperator){
+        Objects.requireNonNull(compareFragment);
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
-        compareFragments.add(compareFragment);
+        compareFragment.check();
+        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(compareFragment.getColumn());
+        Objects.requireNonNull(propertyColumnMapping);
+
+        String newColumn = propertyColumnMapping.getColumn();
+        String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
+        compareFragments.add(compareFragment.column(newColumn).value(newValue));
         return this;
     }
 
     public LogicFragment addChild(LogicFragment logicFragment, LogicOperator logicOperator){
+        Objects.requireNonNull(logicFragment);
+        logicFragment.setMappingMap(this.mappingMap);
+
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
@@ -180,64 +216,7 @@ public class LogicFragment {
         return this;
     }
 
-
-
-
-
-
-
-
-
-//    private String connect(StringBuilder builder, int level){
-//        Objects.requireNonNull(builder, "builder is null");
-//
-//        final int compareFragmentsSize = compareFragments.size();
-//        if(compareFragmentsSize < 1){
-//            throw new ParseException("compare fragment list size must grater than zero");
-//        }
-//
-//        final int logicOperatorsSize = logicOperators.size();
-//        final int childrenSize = children.size();
-//        if(childrenSize  == 0 && logicOperatorsSize < compareFragmentsSize - 1){
-//            throw new ParseException("logic operator list size must grater than fragment size sub one");
-//        }
-//        if(childrenSize > 0 && logicOperatorsSize < compareFragmentsSize){
-//            throw new ParseException("logic operator list size must equal to fragment size");
-//        }
-//
-//
-//        if(level > 0){
-//            builder.append(" ( ");
-//        }
-//
-//        for(int i = 0; i< compareFragmentsSize; i ++ ){
-//            final CompareFragment compareFragment = compareFragments.get(i);
-//
-//            builder.append(compareFragment.getFragment());
-//            if( i < compareFragmentsSize - 1){
-//                builder.append(logicOperators.get(i));
-//            }
-//        }
-//
-//        if(childrenSize > 0){
-//            builder.append(logicOperators.get(logicOperatorsSize - 1));
-//            final int newLevel = level + 1;
-//            children.forEach(f -> connect(builder, newLevel));
-//        }
-//
-//        if(level > 0){
-//            builder.append(" ) ");
-//        }
-//        return builder.toString();
-//
-//    }
-//
-//    public void add(CompareFragment compareFragment){
-//        Objects.requireNonNull(compareFragment, "compare fragment is null");
-//        compareFragments.add(compareFragment);
-//    }
-
-
-
-
+    public void setMappingMap(Map<String, PropertyColumnMapping> mappingMap) {
+        this.mappingMap = mappingMap;
+    }
 }

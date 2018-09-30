@@ -1,5 +1,6 @@
 package com.duguyin.mybatissql.configration;
 
+import com.duguyin.mybatissql.UserAction;
 import com.duguyin.mybatissql.UserTable;
 import com.duguyin.mybatissql.tool.MybatisSqlBuilder;
 import org.apache.ibatis.mapping.ResultMap;
@@ -35,7 +36,7 @@ public class MybatisConfig {
         List<ResultMapping>  list  = new ArrayList<>();
         list.add(resultMapping);
 
-        ResultMap resultMap = new ResultMap.Builder(cfg,"liuyinrm", UserTable.class, list).build();
+        ResultMap resultMap = new ResultMap.Builder(cfg,"liuyinrm", UserAction.class, list).build();
 
         cfg.addResultMap(resultMap);
         System.out.println(cfg);

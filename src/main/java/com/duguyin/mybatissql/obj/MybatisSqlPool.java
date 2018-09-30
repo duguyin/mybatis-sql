@@ -6,6 +6,7 @@ import com.duguyin.mybatissql.tool.Conditions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @ClassName MybatisSqlPool
@@ -13,9 +14,18 @@ import java.util.Map;
  * @Author LiuYin
  * @Date 2018/9/27 18:37
  */
-public class MybatisSqlPool {
+public class MybatisSqlPool<T> {
 
-    public MybatisMapping mapping;
+    public  MybatisMapping<T> mapping;
+
+
+    private MybatisSqlPool(){}
+
+    public MybatisSqlPool(MybatisMapping<T> mybatisMapping){
+        Objects.requireNonNull(mybatisMapping);
+        this.mapping = mybatisMapping;
+    }
+
 
     private enum OP {
         INSERT("INSERT INTO"),
@@ -37,18 +47,36 @@ public class MybatisSqlPool {
 
     }
 
+    public String sql(){
+        final MybatisSQL mybatisSQL = new MybatisSQL();
+        mybatisSQL.setLogicFragment(new LogicFragment(mapping.getDefaultMappingMap()));
 
-    public static class MybatisSQL{
+        mybatisSQL.where(new LogicFragment("id").and("age").and("createTime.<=").or("beforeResult.%%"));
+        return mybatisSQL.logicFragment.toSqlFragment();
+
+    }
+
+
+    public class MybatisSQL{
+
         String tableName;
         String op;
 
         List<String> List;
         List<String> valueList;
 
-        LogicFragment logicFragment = new LogicFragment();
+        LogicFragment logicFragment;
 
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public void setLogicFragment(LogicFragment logicFragment) {
+            this.logicFragment = logicFragment;
+        }
 
         public MybatisSQL where(LogicFragment logicFragment){
+            logicFragment.setMappingMap(mapping.getDefaultMappingMap());
             this.logicFragment.addChild(logicFragment);
             return this;
         }
@@ -65,16 +93,6 @@ public class MybatisSqlPool {
 
     }
 
-    public static void main(String[] args) {
-        final MybatisSQL where = new MybatisSQL()
-                .where(new LogicFragment(CompareFragment.eq("dog")).and(CompareFragment.gte("pig")).and(CompareFragment.neq("cat"))
-                        .and(new LogicFragment(CompareFragment.eq("kjk")).and(CompareFragment.gte("psdfig")).and(CompareFragment.neq("ca43t"))))
-                .and(new LogicFragment(CompareFragment.eq("dog4")).and(CompareFragment.gte("pig3")).and(CompareFragment.neq("cat2")))
-                ;
-        System.out.println(where.logicFragment.toSqlFragment(new StringBuilder()));
-
-
-    }
 
 
 

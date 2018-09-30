@@ -1,6 +1,9 @@
 package com.duguyin.mybatissql.controller;
 
 
+import com.duguyin.mybatissql.UserAction;
+import com.duguyin.mybatissql.obj.MybatisMapping;
+import com.duguyin.mybatissql.obj.MybatisSqlPool;
 import com.duguyin.mybatissql.service.UserTableService;
 import com.duguyin.mybatissql.service.impl.UserTableServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,16 @@ public class UserTableController {
     @GetMapping("/tt")
     public String get(){
         return service.countAll()+"";
+    }
+
+    @GetMapping("/user")
+    public String user(){
+        final MybatisMapping<UserAction> mapping = MybatisMapping.from(UserAction.class);
+        final MybatisSqlPool mybatisSqlPool = new MybatisSqlPool<>(mapping);
+        System.out.println(mybatisSqlPool.sql());
+        return mybatisSqlPool.sql();
+
+
     }
 
 }

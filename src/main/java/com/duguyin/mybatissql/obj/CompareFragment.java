@@ -86,7 +86,27 @@ public class CompareFragment {
 
     public String getFragment() {
         check();
-        return column + comparisonOperator.getOperator() + value;
+        switch (comparisonOperator){
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NEQ:
+            case LIKE:
+                return column + comparisonOperator.getOperator() + value;
+            case LEFT_LIKE:
+                return column + comparisonOperator.getOperator() + " concat( '%', " + value + " ) ";
+            case RIGTH_LIKE:
+                return column + comparisonOperator.getOperator() + " concat( " + value + ", '%' ) ";
+            case BOTH_LIKE:
+                return column + comparisonOperator.getOperator() + " concat( '%', " + value + ", '%' ) ";
+            case IS_NULL:
+            case IS_NOT_NULL:
+                return column + comparisonOperator.getOperator();
+            default:
+                throw new ParseException("this operator is not definition:" + comparisonOperator.getOperator());
+        }
     }
 
     public CompareFragment column(String column){
@@ -104,7 +124,15 @@ public class CompareFragment {
         return this;
     }
 
+    public String getColumn() {
+        return column;
+    }
 
+    public ComparisonOperator getComparisonOperator() {
+        return comparisonOperator;
+    }
 
-
+    public String getValue() {
+        return value;
+    }
 }

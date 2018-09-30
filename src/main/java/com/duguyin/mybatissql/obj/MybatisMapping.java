@@ -24,7 +24,7 @@ public class MybatisMapping<T> {
      */
     private  Map<String, PropertyColumnMapping> DEFAULT_PROPERTY_MAPPING_MAP = new HashMap<>();
 
-    public static <T> MybatisMapping from(Class<T> type){
+    public static <T> MybatisMapping<T> from(Class<T> type){
         MybatisMapping<T> mybatisMapping = new MybatisMapping<>();
         mybatisMapping.type = type;
         mybatisMapping.parse(type);

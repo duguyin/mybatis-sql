@@ -14,7 +14,7 @@ public class Conditions {
 
 
     public static LogicFragment newLogic(){
-        return new LogicFragment();
+        return new LogicFragment("");
     }
 
 
