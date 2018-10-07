@@ -116,11 +116,11 @@ public class LogicFragment {
 
 
     public String toSqlFragment(){
-        return toSqlFragment(new StringBuilder());
+        return toSqlFragment(new StringBuilder(), mappingMap);
     }
 
 
-    public String toSqlFragment(StringBuilder fragment){
+    public String toSqlFragment(StringBuilder fragment, Map<String, PropertyColumnMapping> mappingMap){
 
         final int size = compareFragments.size();
         final int childrenSize = children.size();
@@ -134,6 +134,10 @@ public class LogicFragment {
         if(size > 0){
             for(int i = 0 ; i < size ; i ++){
                 final CompareFragment compareFragment = compareFragments.get(i);
+                compareFragment.check();
+                if(Objects.nonNull(mappingMap) && !mappingMap.isEmpty()){
+                    compareFragment.reBuild(mappingMap);
+                }
                 fragment.append(compareFragment.getFragment());
                 if(i < size - 1){
                     fragment.append(logicOperators.get(i).getOperator());
@@ -144,7 +148,6 @@ public class LogicFragment {
         // 再解析子条件片段
         if(childrenSize > 0){
             for(int i = 0; i < childrenSize; i ++){
-
                 if(size > 0){
                     fragment.append(logicOperators.get(i + index).getOperator());
                 }
@@ -153,7 +156,7 @@ public class LogicFragment {
                 if(hasMany){
                     fragment.append(" ( ");
                 }
-                logicFragment.toSqlFragment(fragment);
+                logicFragment.toSqlFragment(fragment, mappingMap);
                 if(hasMany){
                     fragment.append(" ) ");
                 }
@@ -192,16 +195,19 @@ public class LogicFragment {
 
     private LogicFragment add(CompareFragment compareFragment, LogicOperator logicOperator){
         Objects.requireNonNull(compareFragment);
+        compareFragment.check();
+        compareFragments.add(compareFragment);
+
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
-        compareFragment.check();
-        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(compareFragment.getColumn());
-        Objects.requireNonNull(propertyColumnMapping);
-
-        String newColumn = propertyColumnMapping.getColumn();
-        String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
-        compareFragments.add(compareFragment.column(newColumn).value(newValue));
+//        compareFragment.check();
+//        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(compareFragment.getColumn());
+//        Objects.requireNonNull(propertyColumnMapping);
+//
+//        String newColumn = propertyColumnMapping.getColumn();
+//        String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
+//        compareFragments.add(compareFragment.column(newColumn).value(newValue));
         return this;
     }
 

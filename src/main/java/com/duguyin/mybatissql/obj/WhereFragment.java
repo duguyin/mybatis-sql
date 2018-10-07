@@ -13,17 +13,17 @@ public class WhereFragment {
 
     private  List<LogicFragment> logicFragments = new ArrayList<>();
 
-    public String toWhereSqlFragment(){
-        final int size = logicFragments.size();
-        if(size == 0){
-            return "";
-        }
-        StringBuilder fragment = new StringBuilder();
-        for(int i = 0; i < size; i++){
-            fragment.append(logicFragments.get(i).toSqlFragment(new StringBuilder()));
-        }
-        return fragment.toString();
-    }
+//    public String toWhereSqlFragment(){
+//        final int size = logicFragments.size();
+//        if(size == 0){
+//            return "";
+//        }
+//        StringBuilder fragment = new StringBuilder();
+//        for(int i = 0; i < size; i++){
+//            fragment.append(logicFragments.get(i).toSqlFragment(new StringBuilder()));
+//        }
+//        return fragment.toString();
+//    }
 
 
 

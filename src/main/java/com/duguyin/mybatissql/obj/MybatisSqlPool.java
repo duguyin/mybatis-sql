@@ -1,12 +1,8 @@
 package com.duguyin.mybatissql.obj;
 
 import com.duguyin.mybatissql.enums.LogicOperator;
-import com.duguyin.mybatissql.tool.Conditions;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @ClassName MybatisSqlPool
@@ -51,7 +47,7 @@ public class MybatisSqlPool<T> {
         final MybatisSQL mybatisSQL = new MybatisSQL();
         mybatisSQL.setLogicFragment(new LogicFragment(mapping.getDefaultMappingMap()));
 
-        mybatisSQL.where(new LogicFragment("id").and("age").and("createTime.<=").or("beforeResult.%%"));
+        mybatisSQL.WHERE(new LogicFragment("id").and("age")).OR(new LogicFragment("id").and("age"));
         return mybatisSQL.logicFragment.toSqlFragment();
 
     }
@@ -60,12 +56,16 @@ public class MybatisSqlPool<T> {
     public class MybatisSQL{
 
         String tableName;
-        String op;
+        OP op;
 
-        List<String> List;
-        List<String> valueList;
+        List<String> columns = new ArrayList<>();
+
+        List<String> values;
+        List<String> countColumns = new ArrayList<>();
 
         LogicFragment logicFragment;
+
+        int[] limit = new int[2];
 
         public void setTableName(String tableName) {
             this.tableName = tableName;
@@ -75,20 +75,46 @@ public class MybatisSqlPool<T> {
             this.logicFragment = logicFragment;
         }
 
-        public MybatisSQL where(LogicFragment logicFragment){
+        public MybatisSQL WHERE(LogicFragment logicFragment){
             logicFragment.setMappingMap(mapping.getDefaultMappingMap());
             this.logicFragment.addChild(logicFragment);
             return this;
         }
 
-        public MybatisSQL and(LogicFragment logicFragment){
+        public MybatisSQL AND(LogicFragment logicFragment){
             this.logicFragment.addChild(logicFragment, LogicOperator.AND);
             return this;
         }
 
-        public MybatisSQL or(LogicFragment logicFragment){
+        public MybatisSQL OR(LogicFragment logicFragment){
             this.logicFragment.addChild(logicFragment, LogicOperator.OR);
             return this;
+        }
+
+        public MybatisSQL tableName(String tableName){
+            this.tableName = tableName;
+            return this;
+        }
+
+        public MybatisSQL OP(OP op){
+            this.op = op;
+            return this;
+        }
+
+        public MybatisSQL colums(String... columns){
+            Objects.requireNonNull(columns, "columns is null");
+            this.columns.addAll(Arrays.asList(columns));
+            return this;
+        }
+
+        public MybatisSQL limit(int begin, int offset){
+            this.limit[0] = begin;
+            this.limit[1] = offset;
+            return this;
+        }
+
+        public MybatisSQL count(String property){
+
         }
 
     }

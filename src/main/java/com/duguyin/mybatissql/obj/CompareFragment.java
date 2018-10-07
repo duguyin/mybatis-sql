@@ -4,6 +4,7 @@ import com.duguyin.mybatissql.enums.ComparisonOperator;
 import com.duguyin.mybatissql.exceptions.ParseException;
 import com.duguyin.mybatissql.tool.StringTool;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -108,6 +109,18 @@ public class CompareFragment {
                 throw new ParseException("this operator is not definition:" + comparisonOperator.getOperator());
         }
     }
+
+    public void reBuild(Map<String, PropertyColumnMapping> mappingMap){
+        Objects.requireNonNull(mappingMap);
+        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(this.getColumn());
+        if(Objects.nonNull(propertyColumnMapping)){
+            String newColumn = propertyColumnMapping.getColumn();
+            String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
+            this.column(newColumn).value(newValue);
+        }
+
+    }
+
 
     public CompareFragment column(String column){
         this.column = column;
