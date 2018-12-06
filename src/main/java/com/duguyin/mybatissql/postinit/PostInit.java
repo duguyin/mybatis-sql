@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.Map;
 
-@Component
+//@Component
 public class PostInit implements ApplicationRunner {
 
     @Autowired

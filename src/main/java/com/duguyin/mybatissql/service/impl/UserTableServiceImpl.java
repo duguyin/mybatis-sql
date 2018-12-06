@@ -20,8 +20,9 @@ public class UserTableServiceImpl implements UserTableService {
     @PostConstruct
     public void init(){
         final Configuration configuration = MybatisSqlBuilder.getConfiguration();
+        System.out.println("==================");
         System.out.println(configuration.getResultMaps());
-
+        System.out.println("==================");
     }
 
     @Override

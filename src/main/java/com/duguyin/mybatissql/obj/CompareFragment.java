@@ -98,7 +98,7 @@ public class CompareFragment {
                 return column + comparisonOperator.getOperator() + value;
             case LEFT_LIKE:
                 return column + comparisonOperator.getOperator() + " concat( '%', " + value + " ) ";
-            case RIGTH_LIKE:
+            case RIGHT_LIKE:
                 return column + comparisonOperator.getOperator() + " concat( " + value + ", '%' ) ";
             case BOTH_LIKE:
                 return column + comparisonOperator.getOperator() + " concat( '%', " + value + ", '%' ) ";

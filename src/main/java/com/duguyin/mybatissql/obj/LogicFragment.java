@@ -97,7 +97,7 @@ public class LogicFragment {
                 return ComparisonOperator.LEFT_LIKE;
             case "like%":
             case "_%":
-                return ComparisonOperator.RIGTH_LIKE;
+                return ComparisonOperator.RIGHT_LIKE;
             case "%like%":
             case "%%":
                 return ComparisonOperator.BOTH_LIKE;
@@ -152,7 +152,7 @@ public class LogicFragment {
                     fragment.append(logicOperators.get(i + index).getOperator());
                 }
                 final LogicFragment logicFragment = children.get(i);
-                boolean hasMany = logicFragment.compareFragments.size() > 1;
+                boolean hasMany = logicFragment.compareFragments.size() + logicFragment.children.size() > 1;
                 if(hasMany){
                     fragment.append(" ( ");
                 }
