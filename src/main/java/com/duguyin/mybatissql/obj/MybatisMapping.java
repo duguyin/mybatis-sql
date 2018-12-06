@@ -16,13 +16,15 @@ public class MybatisMapping<T> {
 
     private MybatisMapping(){}
 
+    private String tableName;
+
     /**
      * 本map在解析对应类的时候自动生成，之后不能更改。
      * key: property
      */
     private  Map<String, PropertyColumnMapping> DEFAULT_PROPERTY_MAPPING_MAP = new HashMap<>();
 
-    public static <T> MybatisMapping from(Class<T> type){
+    public static <T> MybatisMapping<T> from(Class<T> type){
         MybatisMapping<T> mybatisMapping = new MybatisMapping<>();
         mybatisMapping.type = type;
         mybatisMapping.parse(type);
@@ -60,6 +62,9 @@ public class MybatisMapping<T> {
         // 必须有Table注解
         Table tableAnnotation = type.getAnnotation(Table.class);
         Objects.requireNonNull(tableAnnotation, "no annotation named 'Table' on this type: " + name);
+        //表名，默认是类的名称
+        this.tableName = isNullOrEmpty(tableAnnotation.value()) ?  type.getSimpleName() : tableAnnotation.value();
+        //是否开启自动扫描
         boolean autoScan = tableAnnotation.autoScan();
 
         Field[] fields = type.getDeclaredFields();

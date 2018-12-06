@@ -1,5 +1,6 @@
 package com.duguyin.mybatissql.configration;
 
+import com.duguyin.mybatissql.UserAction;
 import com.duguyin.mybatissql.UserTable;
 import com.duguyin.mybatissql.tool.MybatisSqlBuilder;
 import org.apache.ibatis.mapping.ResultMap;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,27 +23,23 @@ import java.util.Map;
 @MapperScan("com.duguyin.mybatissql.mapper")
 public class MybatisConfig {
 
-    @Autowired
-    private ApplicationContext applicationContext;
 
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
 
     @PostConstruct
-    public void initUtil(){
+    public void initUtil() throws  Exception{
         org.apache.ibatis.session.Configuration configuration = sqlSessionFactory.getConfiguration();
         MybatisSqlBuilder.setConfiguration(configuration);
-        System.out.println(MybatisSqlBuilder.getConfiguration());
         org.apache.ibatis.session.Configuration cfg = MybatisSqlBuilder.getConfiguration();
         ResultMapping resultMapping = new ResultMapping.Builder(cfg,"userAction", "user_action", String.class).build();
         List<ResultMapping>  list  = new ArrayList<>();
         list.add(resultMapping);
 
-        ResultMap resultMap = new ResultMap.Builder(cfg,"liuyinrm", UserTable.class, list).build();
+        ResultMap resultMap = new ResultMap.Builder(cfg,"liuyinrm", UserAction.class, list).build();
 
         cfg.addResultMap(resultMap);
         System.out.println(cfg);
-
 
     }
 }

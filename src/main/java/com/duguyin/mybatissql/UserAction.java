@@ -5,7 +5,7 @@ import com.duguyin.mybatissql.annotations.Table;
 
 import java.sql.Timestamp;
 
-@Table("user_action")
+@Table(value = "user_action", autoScan = true)
 public class UserAction {
 
     private long id;
