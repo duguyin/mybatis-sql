@@ -13,16 +13,16 @@ import java.util.Objects;
 public class StringTool {
 
 
-    public static boolean isNullOrEmpty(String str){
+    public static boolean isNullOrEmpty(String str) {
         return Objects.isNull(str) || str.isEmpty();
     }
 
-    public static boolean isNotEmpty(String str){
+    public static boolean isNotEmpty(String str) {
         return !isNullOrEmpty(str);
     }
 
-    public static boolean hasAnyEmpty(String... strings){
-        if(Objects.isNull(strings) || strings.length == 0){
+    public static boolean hasAnyEmpty(String... strings) {
+        if (Objects.isNull(strings) || strings.length == 0) {
             throw new ParseException("string array is null or empty");
         }
         for (String str : strings) {
@@ -33,5 +33,11 @@ public class StringTool {
         return false;
     }
 
+    public static String withMybatisFormat(String column) {
+        if (isNullOrEmpty(column)) {
+            throw new RuntimeException("column is null or empty");
+        }
+        return "#{" + column + "}";
+    }
 
 }
