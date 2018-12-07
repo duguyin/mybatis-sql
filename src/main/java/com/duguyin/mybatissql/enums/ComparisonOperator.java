@@ -20,6 +20,7 @@ public enum ComparisonOperator {
     BOTH_LIKE(" LIKE "),
     IS_NULL(" IS NULL "),
     IS_NOT_NULL(" IS NOT NULL "),
+    IN(" IN"),
     ;
 
     String operator ;

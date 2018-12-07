@@ -56,6 +56,8 @@ public class LogicFragment {
     private CompareFragment createCompareFragment(String sugar) {
         Objects.requireNonNull(sugar);
         String[] split = sugar.split("\\.");
+
+
         if(split.length == 0 || split.length > 2){
             throw new ParseException("sugar format error");
         }
@@ -201,13 +203,7 @@ public class LogicFragment {
         if(Objects.nonNull(logicOperator)){
             logicOperators.add(logicOperator);
         }
-//        compareFragment.check();
-//        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(compareFragment.getColumn());
-//        Objects.requireNonNull(propertyColumnMapping);
-//
-//        String newColumn = propertyColumnMapping.getColumn();
-//        String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
-//        compareFragments.add(compareFragment.column(newColumn).value(newValue));
+
         return this;
     }
 

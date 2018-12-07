@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @RestController
 @RequestMapping("/tt")
 public class UserTableController {
@@ -30,10 +33,26 @@ public class UserTableController {
     public String user(){
         final MybatisMapping<UserAction> mapping = MybatisMapping.from(UserAction.class);
         final MybatisDomainSqlPool mybatisDomainSqlPool = new MybatisDomainSqlPool<>(mapping);
-        System.out.println(mybatisDomainSqlPool.sql());
-        return mybatisDomainSqlPool.sql();
+
+        return mybatisDomainSqlPool.deleteSql();
 
 
+    }
+
+    @GetMapping("/p")
+    public String p(){
+        Pattern FUCTION_PATTERN = Pattern.compile("\\(.*\\)");
+        String s  = "df(adff,234,34,count(23,45))";
+        final Matcher matcher = FUCTION_PATTERN.matcher(s);
+        boolean find = matcher.find();
+        if(find){
+            System.out.println(matcher.group());
+            System.out.println(matcher.group(0));
+//            System.out.println(matcher.group(1));
+
+        }
+
+        return String.valueOf(find);
     }
 
 }

@@ -105,6 +105,8 @@ public class CompareFragment {
             case IS_NULL:
             case IS_NOT_NULL:
                 return column + comparisonOperator.getOperator();
+            case IN:
+                return column + comparisonOperator.getOperator() + " ( " + value + " )";
             default:
                 throw new ParseException("this operator is not definition:" + comparisonOperator.getOperator());
         }
@@ -115,7 +117,13 @@ public class CompareFragment {
         final PropertyColumnMapping propertyColumnMapping = mappingMap.get(this.getColumn());
         if(Objects.nonNull(propertyColumnMapping)){
             String newColumn = propertyColumnMapping.getColumn();
-            String newValue = "#{"+propertyColumnMapping.getProperty()+"}";
+            String newValue;
+            if(ComparisonOperator.IN.equals(this.comparisonOperator)){
+                newValue = this.value;
+            }else{
+                newValue = "#{"+propertyColumnMapping.getProperty()+"}";
+
+            }
             this.column(newColumn).value(newValue);
         }
 
