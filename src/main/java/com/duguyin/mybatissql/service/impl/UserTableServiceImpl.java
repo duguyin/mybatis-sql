@@ -17,14 +17,6 @@ public class UserTableServiceImpl implements UserTableService {
     @Autowired
     private UserTableMapper userTableMapper;
 
-    @PostConstruct
-    public void init(){
-        final Configuration configuration = MybatisSqlBuilder.getConfiguration();
-        System.out.println("==================");
-        System.out.println(configuration.getResultMaps());
-        System.out.println("==================");
-    }
-
     @Override
     public int countAll() {
         UserTable userTable = userTableMapper.selectOne();

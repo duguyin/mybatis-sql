@@ -11,33 +11,57 @@ import java.util.regex.Pattern;
 
 /**
  * @ClassName MybatisDomainSqlPool
- * @Description  domain sql 语句池，专门用来放sql
+ * @Description domain sql 语句池，专门用来放sql
  * @Author LiuYin
  * @Date 2018/9/27 18:37
  */
 public class MybatisDomainSqlPool<T> {
 
-    public MybatisMapping<T> mapping;
+    /**
+     * Mybatis映射
+     */
+    private MybatisMapping<T> mapping;
 
-    public static final Pattern FUCTION_PATTERN = Pattern.compile("\\(.*\\)");
+    /**
+     * 函数的匹配表达式
+     */
+    private static final Pattern FUNCTION_PATTERN = Pattern.compile("\\(.*\\)");
 
 
     private MybatisDomainSqlPool() {
     }
 
     public MybatisDomainSqlPool(MybatisMapping<T> mybatisMapping) {
-        Objects.requireNonNull(mybatisMapping);
+        Objects.requireNonNull(mybatisMapping, "mybatis mapping is null");
         this.mapping = mybatisMapping;
+
     }
 
-
+    /**
+     * 基本操作
+     */
     private enum OP {
+        /**
+         * 新增
+         */
         INSERT("INSERT INTO"),
+        /**
+         * 删除
+         */
         DELETE("DELETE"),
+        /**
+         * 查询
+         */
         SELECT("SELECT"),
+        /**
+         * 更新
+         */
         UPDATE("UPDATE"),
         ;
 
+        /**
+         * 操作命令
+         */
         String op;
 
         OP(String op) {
@@ -48,8 +72,6 @@ public class MybatisDomainSqlPool<T> {
             return this.op;
         }
     }
-
-
 
 
     public String insertSql() {
@@ -97,50 +119,78 @@ public class MybatisDomainSqlPool<T> {
     }
 
 
+    /**
+     * MybatisSql类，用来描述和生成MybatisSql
+     */
     public class MybatisSQL {
 
-        /** 表名称*/
+        /**
+         * 表名称
+         */
         String tableName;
-        /** 操作*/
+        /**
+         * 操作
+         */
         OP op;
 
-        /** 列名称*/
+        /**
+         * 列名称
+         */
         List<String> properties = new ArrayList<>();
-        /** 批量新增次数*/
+        /**
+         * 批量新增次数
+         */
         int insertRepeatCount = 1;
 
-        /** where条件逻辑*/
+        /**
+         * where条件逻辑
+         */
         LogicFragment where;
 
-        /** group by 字段*/
+        /**
+         * group by 字段
+         */
         List<String> groupByProperties = new ArrayList<>();
 
-        /** limit语句*/
+        /**
+         * having 字段
+         */
+        LogicFragment having;
+
+        /**
+         * limit语句
+         */
         Integer[] limit = new Integer[2];
 
-        public void setTableName(String tableName) {
-            this.tableName = tableName;
-        }
+
+        private MybatisSQL(){}
 
         public void setWhere(LogicFragment where) {
             this.where = where;
 
         }
 
-        public MybatisSQL GROUP_BY(String properties){
-            if(StringTool.isNullOrEmpty(properties)){
+        public MybatisSQL GROUP_BY(String properties) {
+            if (StringTool.isNullOrEmpty(properties)) {
                 throw new ParseException("group by sql is null or empty");
             }
             final String[] split = properties.split(",");
-            for(int i = 0; i < split.length; i++){
+
+            for (int i = 0; i < split.length; i++) {
                 split[i] = StringTool.trimAllWhitespace(split[i]);
                 final Map<String, PropertyColumnMapping> defaultMappingMap = mapping.getDefaultMappingMap();
-
-
-
+                final PropertyColumnMapping propertyColumnMapping = defaultMappingMap.get(split[i]);
+                String column = propertyColumnMapping.getColumn();
+                groupByProperties.add(Objects.isNull(column) ? split[i] : column);
             }
-            // TODO
+            return this;
+        }
 
+        public MybatisSQL HAVING(LogicFragment logicFragment) {
+            logicFragment.setMappingMap(mapping.getDefaultMappingMap());
+            this.having = logicFragment;
+
+            return this;
         }
 
 
@@ -151,8 +201,6 @@ public class MybatisDomainSqlPool<T> {
 
             return this;
         }
-
-
 
 
         public MybatisSQL AND(LogicFragment logicFragment) {
@@ -187,43 +235,66 @@ public class MybatisDomainSqlPool<T> {
             return this;
         }
 
-        public MybatisSQL LIMIT(Integer offset){
+        public MybatisSQL LIMIT(Integer offset) {
             this.limit[0] = offset;
             this.limit[1] = null;
             return this;
         }
 
 
-
-        public String getSql() {
+        private String getSql() {
             if (StringTool.isNullOrEmpty(tableName)) {
                 throw new ParseException("table name is null or empty");
             }
             StringBuilder sql = new StringBuilder();
             sql.append(op.getOp()).append(" ");
+
+            // 新增
             if (OP.INSERT == op) {
                 sql.append(tableName);
                 sql.append(getInsertColumns(properties)).append(" values ");
                 sql.append(getMybatisInsertValueColumns(properties, insertRepeatCount));
 
+                // 更新
             } else if (OP.UPDATE == op) {
                 sql.append(tableName).append(" SET ");
                 sql.append(getUpdateSqlFragment(properties));
+
+                // 查询
             } else if (OP.SELECT == op) {
-               sql.append(getSelectColumns(properties)).append(" from ").append(tableName);
+                sql.append(getSelectColumns(properties)).append(" from ").append(tableName);
+
+                // 删除
             } else if (OP.DELETE == op) {
                 sql.append("from ").append(tableName);
             }
 
 
-            if(Objects.nonNull(where)){
+            if (Objects.nonNull(where)) {
                 sql.append(" WHERE ");
                 sql.append(where.toSqlFragment());
             }
 
-            if(this.limit[0] != null){
+            if (Objects.nonNull(groupByProperties) && !groupByProperties.isEmpty()) {
+                sql.append(" GROUP BY ");
+
+                final int size = groupByProperties.size();
+                for (int i = 0; i < size; i++) {
+                   sql.append(properties.get(i));
+                   if(i < size - 1){
+                       sql.append(", ");
+                   }
+                }
+            }
+
+            if (Objects.nonNull(having)){
+                sql.append(having.toSqlFragment());
+            }
+
+
+            if (this.limit[0] != null) {
                 sql.append(" LIMIT ").append(this.limit[0]);
-                if(this.limit[1] != null){
+                if (this.limit[1] != null) {
                     sql.append(", ").append(this.limit[1]);
                 }
             }
@@ -231,7 +302,7 @@ public class MybatisDomainSqlPool<T> {
             return sql.toString();
         }
 
-        public String getSql2(){
+        public String getSql2() {
             List<String> list = new ArrayList<>();
             list.add("id");
             list.add("age");
@@ -264,17 +335,17 @@ public class MybatisDomainSqlPool<T> {
             for (int i = 0; i < size; i++) {
                 String property = properties.get(i);
                 final String[] split = property.split("=");
-                for(int j = 0; j < split.length; j ++){
+                for (int j = 0; j < split.length; j++) {
                     split[j] = split[j].trim();
                 }
 
                 final PropertyColumnMapping propertyColumnMapping = mappingMap.get(split[0]);
                 String column = Objects.isNull(propertyColumnMapping) ? split[0] : propertyColumnMapping.getColumn();
                 String mybatisColumn = StringTool.withMybatisFormat(column);
-                if(split.length == 1){
+                if (split.length == 1) {
                     builder.append(column).append("=").append(mybatisColumn);
-                }else{
-                    builder.append(column).append("=").append(split[1].replace(split[0],mybatisColumn));
+                } else {
+                    builder.append(column).append("=").append(split[1].replace(split[0], mybatisColumn));
                 }
                 if (i < size - 1) {
                     builder.append(", ");
@@ -310,7 +381,7 @@ public class MybatisDomainSqlPool<T> {
             return insertColumnsBuilder.toString();
         }
 
-        private String getSelectColumns(List<String> properties){
+        private String getSelectColumns(List<String> properties) {
             Objects.requireNonNull(properties, "select properties is null");
             int size = properties.size();
             if (size == 0) {
@@ -335,32 +406,32 @@ public class MybatisDomainSqlPool<T> {
 
         }
 
-        private String parseFunction(String property, Map<String, PropertyColumnMapping> defaultMappingMap){
+        private String parseFunction(String property, Map<String, PropertyColumnMapping> defaultMappingMap) {
 
             StringTool.checkBrackets(property);
 
-            final Matcher matcher = FUCTION_PATTERN.matcher(property);
+            final Matcher matcher = FUNCTION_PATTERN.matcher(property);
             StringBuilder builder = new StringBuilder();
 
-            if (matcher.find() ){
+            if (matcher.find()) {
                 builder.append(property.split("\\(")[0]).append("(");
-                String group = matcher.group(0).replaceFirst("\\(","");
+                String group = matcher.group(0).replaceFirst("\\(", "");
                 group = group.substring(0, group.lastIndexOf(")"));
 
                 final String[] split = group.split(",");
-                for(int i = 0; i < split.length; i ++){
+                for (int i = 0; i < split.length; i++) {
                     System.out.println(split[i]);
                     String child = parseFunction(split[i], defaultMappingMap);
                     builder.append(child);
-                    if(i < split.length - 1){
+                    if (i < split.length - 1) {
                         builder.append(", ");
                     }
                 }
                 builder.append(")");
-            }else{
-                if(StringTool.isNumeric(property)){
+            } else {
+                if (StringTool.isNumeric(property)) {
                     builder.append(property);
-                }else{
+                } else {
                     final PropertyColumnMapping propertyColumnMapping = defaultMappingMap.get(property);
                     builder.append(Objects.isNull(propertyColumnMapping) ? property : propertyColumnMapping.getColumn());
                 }
@@ -395,6 +466,30 @@ public class MybatisDomainSqlPool<T> {
             }
             return values.toString();
         }
+    }
+
+    public  String sql(String sqlSugar){
+
+        if(StringTool.isNullOrEmpty(sqlSugar)){
+            throw new ParseException("sql sugar is null or empty");
+        }
+
+        final String[] fragments = sqlSugar.split("_");
+        String tableName = mapping.getTableName();
+
+        final MybatisSQL mybatisSQL = new MybatisSQL().tableName(tableName);
+
+        // 转换成大写
+        for (int i = 0; i < fragments.length; i++) {
+            fragments[i] = StringTool.trimAllWhitespace(fragments[i]).toUpperCase();
+        }
+
+
+        return null;
+
+
+
+
     }
 
 

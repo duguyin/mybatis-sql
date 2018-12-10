@@ -8,6 +8,7 @@ import org.apache.ibatis.mapping.ResultMapping;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,22 +25,14 @@ import java.util.Map;
 public class MybatisConfig {
 
 
-    @Autowired
-    private SqlSessionFactory sqlSessionFactory;
+    @Bean
+    public MybatisSqlBuilder mybatisSqlBuilder(SqlSessionFactory sqlSessionFactory) {
 
-    @PostConstruct
-    public void initUtil() throws  Exception{
         org.apache.ibatis.session.Configuration configuration = sqlSessionFactory.getConfiguration();
-        MybatisSqlBuilder.setConfiguration(configuration);
-        org.apache.ibatis.session.Configuration cfg = MybatisSqlBuilder.getConfiguration();
-        ResultMapping resultMapping = new ResultMapping.Builder(cfg,"userAction", "user_action", String.class).build();
-        List<ResultMapping>  list  = new ArrayList<>();
-        list.add(resultMapping);
+        MybatisSqlBuilder.from(configuration, UserAction.class);
 
-        ResultMap resultMap = new ResultMap.Builder(cfg,"liuyinrm", UserAction.class, list).build();
-
-        cfg.addResultMap(resultMap);
-        System.out.println(cfg);
-
+        System.out.println(configuration);
+        return new MybatisSqlBuilder();
     }
+
 }
