@@ -17,7 +17,7 @@ public class StringTool {
 
 
     public static boolean isNullOrEmpty(String str) {
-        return Objects.isNull(str) || str.isEmpty();
+        return Objects.isNull(str) || str.isEmpty() ;
     }
 
     public static boolean isNotEmpty(String str) {
@@ -95,7 +95,11 @@ public class StringTool {
         }
     }
 
-
+    /**
+     * 去掉所用的空白
+     * @param str
+     * @return
+     */
     public static String trimAllWhitespace(String str) {
         if (Objects.isNull(str)) {
             return null;
