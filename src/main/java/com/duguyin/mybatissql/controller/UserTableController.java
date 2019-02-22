@@ -1,10 +1,10 @@
 package com.duguyin.mybatissql.controller;
 
 
-import com.duguyin.mybatissql.UserAction;
 import com.duguyin.mybatissql.obj.MybatisDomainSql;
 import com.duguyin.mybatissql.obj.MybatisMapping;
 import com.duguyin.mybatissql.service.UserTableService;
+import com.duguyin.mybatissql.tool.MybatisSqlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,8 +42,9 @@ public class UserTableController {
 //        System.out.println(mybatisSql.baseDeleteSql("age"));
 //        System.out.println(mybatisSql.baseDeleteSqlByPrimaryKey());
         System.out.println(mybatisSql.baseCountSql("id"));
-        System.out.println(mybatisSql.baseSelect("id"));
-        System.out.println(mybatisSql.baseSelectByLimit(2,30));
+        System.out.println(mybatisSql.baseSelectSql("id"));
+        System.out.println(mybatisSql.baseSelectSqlByLimit("pageSize"));
+        System.out.println(MybatisSqlBuilder.useDomain(UserAction.class).baseSelectSql("age").cache());
         return "ok";
 
 

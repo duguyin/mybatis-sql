@@ -1,6 +1,5 @@
 package com.duguyin.mybatissql.mapper;
 
-import com.duguyin.mybatissql.UserTable;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;

@@ -223,12 +223,12 @@ public class MybatisTool {
 
     }
 
-    public static String parseResultMapId(String className) {
+    private static String parseResultMapId(String className) {
         if (StringTool.isNullOrEmpty(className)) {
             throw new ParseException("class name is null or empty");
         }
 
-//        String replacedString = className.replaceAll(CLASS_NAME_SEPARATOR_REGEX, DEFAULT_SEPARATOR);
+        // 举例: "_xxx_"
         return DEFAULT_SEPARATOR + className + DEFAULT_SEPARATOR;
 
     }

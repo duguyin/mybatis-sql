@@ -2,10 +2,12 @@ package com.duguyin.mybatissql.obj;
 
 import com.duguyin.mybatissql.enums.LogicOperator;
 import com.duguyin.mybatissql.exceptions.ParseException;
+import com.duguyin.mybatissql.tool.MybatisTool;
 import com.duguyin.mybatissql.tool.MysqlFu;
 import com.duguyin.mybatissql.tool.StringTool;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,8 @@ public class MybatisDomainSql<T> {
      */
     private static final Pattern FUNCTION_PATTERN = Pattern.compile("\\(.*\\)");
 
+    private static final Map<String,String> SQL_CACHE = new ConcurrentHashMap<>();
+
 
     private MybatisDomainSql() {
     }
@@ -40,6 +44,8 @@ public class MybatisDomainSql<T> {
     private MybatisSQL newSql(OP op){
         return new MybatisSQL().tableName(mapping.getTableName()).OP(op);
     }
+
+
 
     /**
      * 基础插入语句
@@ -91,37 +97,58 @@ public class MybatisDomainSql<T> {
 
     /**
      * 根据主键更新的语句
-     * @return 语句
+     * @return sql语句
      */
     public String baseUpdateSqlByPrimaryKey(){
-        final String primaryKeyName = mapping.getPrimaryKeyName();
-        if(StringTool.isNullOrEmpty(primaryKeyName)){
-            throw new ParseException("no primary key find from table " + mapping.getTableName());
-        }
-        return baseUpdateSql(primaryKeyName);
+        return baseUpdateSql(getPrimaryKeyName());
     }
 
+    /**
+     * 根据条件字段删除
+     * @param conditionProperty 条件字段
+     * @return sql语句
+     */
     public String baseDeleteSql(String conditionProperty){
         final MybatisSQL mybatisSQL = newSql(OP.DELETE);
         mybatisSQL.WHERE(new LogicFragment(conditionProperty));
         return mybatisSQL.getSql();
     }
 
+    /**
+     * 根据主键删除
+     * @return sql语句
+     */
     public String baseDeleteSqlByPrimaryKey(){
-        final String primaryKeyName = mapping.getPrimaryKeyName();
-        if(StringTool.isNullOrEmpty(primaryKeyName)){
-            throw new ParseException("no primary key find from table " + mapping.getTableName());
-        }
-        return baseDeleteSql(primaryKeyName);
+        return baseDeleteSql(getPrimaryKeyName());
     }
 
+
+
+    /**
+     * 根据条件执行count
+     * @param countProperty 要执行count的字段
+     * @return sql语句
+     */
     public String baseCountSql(String countProperty){
         final MybatisSQL mybatisSQL = newSql(OP.SELECT);
         mybatisSQL.add(MysqlFu.count(countProperty));
         return mybatisSQL.getSql();
     }
 
-    public String baseSelect(String conditionProperty){
+    /**
+     * 根据主键执行count
+     * @return sql语句
+     */
+    public String baseCountSqlByPrimaryKey(){
+        return baseCountSql(getPrimaryKeyName());
+    }
+
+    /**
+     * 根据条件执行查找
+     * @param conditionProperty 条件字段
+     * @return sql语句
+     */
+    public String baseSelectSql(String conditionProperty){
         if(StringTool.isNullOrEmpty(conditionProperty)){
             throw new ParseException("condition property is null or empty");
         }
@@ -132,10 +159,45 @@ public class MybatisDomainSql<T> {
 
     }
 
-    public String baseSelectByLimit(int begin, int offset){
+    /**
+     * 根据主键查找
+     * @return sql语句
+     */
+    public String baseSelectSqlByPrimaryKey(){
+        return baseSelectSql(getPrimaryKeyName());
+    }
+
+    /**
+     * 根据分页查找
+     * @param beginProperty 起始位置的属性名称
+     * @param offsetProperty 偏移量的属性名称
+     * @return sql语句
+     */
+    public String baseSelectSqlByLimit(String beginProperty, String offsetProperty){
         final MybatisSQL mybatisSQL = newSql(OP.SELECT);
         mapping.getDefaultMappingMap().values().forEach(v -> mybatisSQL.properties.add(v.getProperty()));
-        return mybatisSQL.LIMIT(begin, offset).getSql();
+        return mybatisSQL.LIMIT(beginProperty, offsetProperty).getSql();
+    }
+
+    /**
+     * 根据分页查找
+     * @param offsetProperty 偏移量的属性名称
+     * @return sql语句
+     */
+    public String baseSelectSqlByLimit(String offsetProperty){
+        final MybatisSQL mybatisSQL = newSql(OP.SELECT);
+        mapping.getDefaultMappingMap().values().forEach(v -> mybatisSQL.properties.add(v.getProperty()));
+        return mybatisSQL.LIMIT(offsetProperty).getSql();
+    }
+
+
+
+    private String getPrimaryKeyName() {
+        final String primaryKeyName = mapping.getPrimaryKeyName();
+        if (StringTool.isNullOrEmpty(primaryKeyName)) {
+            throw new ParseException("no primary key find from table " + mapping.getTableName());
+        }
+        return primaryKeyName;
     }
 
 
@@ -181,7 +243,7 @@ public class MybatisDomainSql<T> {
         /**
          * limit语句
          */
-        Integer[] limit = new Integer[2];
+        String[] limit = new String[2];
 
 
         private MybatisSQL(){}
@@ -256,14 +318,14 @@ public class MybatisDomainSql<T> {
             return this;
         }
 
-        public MybatisSQL LIMIT(Integer begin, Integer offset) {
-            this.limit[0] = begin;
-            this.limit[1] = offset;
+        public MybatisSQL LIMIT(String beginProperty, String offsetProperty) {
+            this.limit[0] = beginProperty;
+            this.limit[1] = offsetProperty;
             return this;
         }
 
-        public MybatisSQL LIMIT(Integer offset) {
-            this.limit[0] = offset;
+        public MybatisSQL LIMIT(String offsetProperty) {
+            this.limit[0] = offsetProperty;
             this.limit[1] = null;
             return this;
         }
@@ -320,9 +382,9 @@ public class MybatisDomainSql<T> {
 
 
             if (this.limit[0] != null) {
-                sql.append(" LIMIT ").append(this.limit[0]);
+                sql.append(" LIMIT ").append(StringTool.withMybatisFormat(this.limit[0]));
                 if (this.limit[1] != null) {
-                    sql.append(", ").append(this.limit[1]);
+                    sql.append(", ").append(StringTool.withMybatisFormat(this.limit[1]));
                 }
             }
 
