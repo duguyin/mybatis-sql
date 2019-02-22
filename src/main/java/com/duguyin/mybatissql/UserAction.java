@@ -8,7 +8,9 @@ import java.sql.Timestamp;
 @Table(value = "user_action", autoScan = true)
 public class UserAction {
 
+    @Column(primaryKey = true)
     private long id;
+    @Column("age_aaa")
     private int age;
     @Column("create_time")
     private Timestamp createTime;

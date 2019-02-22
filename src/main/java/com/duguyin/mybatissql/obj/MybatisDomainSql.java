@@ -1,8 +1,8 @@
 package com.duguyin.mybatissql.obj;
 
-import com.duguyin.mybatissql.enums.ComparisonOperator;
 import com.duguyin.mybatissql.enums.LogicOperator;
 import com.duguyin.mybatissql.exceptions.ParseException;
+import com.duguyin.mybatissql.tool.MysqlFu;
 import com.duguyin.mybatissql.tool.StringTool;
 
 import java.util.*;
@@ -10,12 +10,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @ClassName MybatisDomainSqlPool
- * @Description domain sql 语句池，专门用来放sql
+ * @ClassName MybatisDomainSql
+ * @Description domain sql 专门用来生成sql的地方
  * @Author LiuYin
  * @Date 2018/9/27 18:37
  */
-public class MybatisDomainSqlPool<T> {
+public class MybatisDomainSql<T> {
 
     /**
      * Mybatis映射
@@ -28,95 +28,116 @@ public class MybatisDomainSqlPool<T> {
     private static final Pattern FUNCTION_PATTERN = Pattern.compile("\\(.*\\)");
 
 
-    private MybatisDomainSqlPool() {
+    private MybatisDomainSql() {
     }
 
-    public MybatisDomainSqlPool(MybatisMapping<T> mybatisMapping) {
+    public MybatisDomainSql(MybatisMapping<T> mybatisMapping) {
         Objects.requireNonNull(mybatisMapping, "mybatis mapping is null");
         this.mapping = mybatisMapping;
 
     }
 
+    private MybatisSQL newSql(OP op){
+        return new MybatisSQL().tableName(mapping.getTableName()).OP(op);
+    }
+
     /**
-     * 基本操作
+     * 基础插入语句
+     * @param includePrimaryKey 是否包含主键
+     * @return 语句
      */
-    private enum OP {
-        /**
-         * 新增
-         */
-        INSERT("INSERT INTO"),
-        /**
-         * 删除
-         */
-        DELETE("DELETE"),
-        /**
-         * 查询
-         */
-        SELECT("SELECT"),
-        /**
-         * 更新
-         */
-        UPDATE("UPDATE"),
-        ;
+    public String baseInsertSql(boolean includePrimaryKey){
 
-        /**
-         * 操作命令
-         */
-        String op;
+        final MybatisSQL mybatisSQL = newSql(OP.INSERT);
+        mapping.getDefaultMappingMap().values().forEach(v -> {
+            if(!v.isPrimaryKey() || includePrimaryKey){
+                mybatisSQL.properties.add(v.getProperty());
+            }
+        });
+        return mybatisSQL.getSql();
 
-        OP(String op) {
-            this.op = op;
+    }
+
+    /**
+     * 基础插入语句，不包含主键
+     * @return 语句
+     */
+    public String baseInsertSql(){
+        return baseInsertSql(false);
+    }
+
+
+    /**
+     * 基础更新语句
+     * @param conditionProperty 条件列，默认为相等条件
+     * @return
+     */
+    public String baseUpdateSql(String conditionProperty){
+        if(StringTool.isNullOrEmpty(conditionProperty)){
+            throw new ParseException("condition property is null or empty");
         }
-
-        String getOp() {
-            return this.op;
+        if(!mapping.getDefaultMappingMap().keySet().contains(conditionProperty)){
+            throw new ParseException("there is no property named \""+conditionProperty +"\" in table "+mapping.getTableName());
         }
-    }
-
-
-    public String insertSql() {
-        final MybatisSQL mybatisSQL = new MybatisSQL();
-        mybatisSQL.tableName(mapping.getTableName());
-        mybatisSQL.OP(OP.INSERT);
-        mybatisSQL.properties.add("id");
-        mybatisSQL.properties.add("age");
-        mybatisSQL.setWhere(new LogicFragment(mapping.getDefaultMappingMap()));
-
-        mybatisSQL.WHERE(new LogicFragment("id").and("age")).AND(new LogicFragment("id").or("age")).OR(new LogicFragment("age").and(new LogicFragment("id").and("age")));
-//        return mybatisSQL.where.toSqlFragment();
-
-//        mybatisSQL.getSql2();
+        final MybatisSQL mybatisSQL = newSql(OP.UPDATE);
+        mapping.getDefaultMappingMap().values().forEach(v -> {
+            if(!v.getProperty().equalsIgnoreCase(conditionProperty)){
+                mybatisSQL.properties.add(v.getProperty());
+            }
+        });
+        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
         return mybatisSQL.getSql();
     }
 
-    public String selectSql() {
-        final MybatisSQL mybatisSQL = new MybatisSQL();
-        mybatisSQL.tableName(mapping.getTableName());
-        mybatisSQL.OP(OP.SELECT);
-        mybatisSQL.properties.add("id");
-        mybatisSQL.properties.add("count(beforeResult,count(abs(beforeResult))))");
-        mybatisSQL.WHERE(new LogicFragment("id"));
+    /**
+     * 根据主键更新的语句
+     * @return 语句
+     */
+    public String baseUpdateSqlByPrimaryKey(){
+        final String primaryKeyName = mapping.getPrimaryKeyName();
+        if(StringTool.isNullOrEmpty(primaryKeyName)){
+            throw new ParseException("no primary key find from table " + mapping.getTableName());
+        }
+        return baseUpdateSql(primaryKeyName);
+    }
+
+    public String baseDeleteSql(String conditionProperty){
+        final MybatisSQL mybatisSQL = newSql(OP.DELETE);
+        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
         return mybatisSQL.getSql();
     }
 
-    public String updateSql() {
-        final MybatisSQL mybatisSQL = new MybatisSQL();
-        mybatisSQL.tableName(mapping.getTableName());
-        mybatisSQL.OP(OP.UPDATE);
-        mybatisSQL.properties.add("id");
-        mybatisSQL.properties.add("age=age+1");
-        mybatisSQL.WHERE(new LogicFragment("id"));
+    public String baseDeleteSqlByPrimaryKey(){
+        final String primaryKeyName = mapping.getPrimaryKeyName();
+        if(StringTool.isNullOrEmpty(primaryKeyName)){
+            throw new ParseException("no primary key find from table " + mapping.getTableName());
+        }
+        return baseDeleteSql(primaryKeyName);
+    }
+
+    public String baseCountSql(String countProperty){
+        final MybatisSQL mybatisSQL = newSql(OP.SELECT);
+        mybatisSQL.add(MysqlFu.count(countProperty));
         return mybatisSQL.getSql();
     }
 
-    public String deleteSql() {
-
-        final MybatisSQL mybatisSQL = new MybatisSQL();
-        mybatisSQL.tableName(mapping.getTableName());
-        mybatisSQL.OP(OP.DELETE);
-        mybatisSQL.WHERE(new LogicFragment(new CompareFragment().column("beforeResult").operator(ComparisonOperator.IN).value("dog,pig,cat")));
+    public String baseSelect(String conditionProperty){
+        if(StringTool.isNullOrEmpty(conditionProperty)){
+            throw new ParseException("condition property is null or empty");
+        }
+        final MybatisSQL mybatisSQL = newSql(OP.SELECT);
+        mapping.getDefaultMappingMap().values().forEach(v -> mybatisSQL.properties.add(v.getProperty()));
+        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
         return mybatisSQL.getSql();
+
     }
+
+    public String baseSelectByLimit(int begin, int offset){
+        final MybatisSQL mybatisSQL = newSql(OP.SELECT);
+        mapping.getDefaultMappingMap().values().forEach(v -> mybatisSQL.properties.add(v.getProperty()));
+        return mybatisSQL.LIMIT(begin, offset).getSql();
+    }
+
 
 
     /**
@@ -170,6 +191,10 @@ public class MybatisDomainSqlPool<T> {
 
         }
 
+        public void add(String s){
+            this.properties.add(s);
+        }
+
         public MybatisSQL GROUP_BY(String properties) {
             if (StringTool.isNullOrEmpty(properties)) {
                 throw new ParseException("group by sql is null or empty");
@@ -196,9 +221,7 @@ public class MybatisDomainSqlPool<T> {
 
         public MybatisSQL WHERE(LogicFragment logicFragment) {
             logicFragment.setMappingMap(mapping.getDefaultMappingMap());
-//            this.where.addChild(where);
             this.where = logicFragment;
-
             return this;
         }
 
@@ -223,9 +246,13 @@ public class MybatisDomainSqlPool<T> {
             return this;
         }
 
-        public MybatisSQL colums(String... columns) {
-            Objects.requireNonNull(columns, "properties is null");
-            this.properties.addAll(Arrays.asList(columns));
+        public MybatisSQL properties(String... properties) {
+            Objects.requireNonNull(properties, "properties is null");
+            List<String> list = new ArrayList<>();
+            for (String property : properties) {
+                list.addAll(splitToList(property));
+            }
+            this.properties.addAll(list);
             return this;
         }
 
@@ -302,15 +329,7 @@ public class MybatisDomainSqlPool<T> {
             return sql.toString();
         }
 
-        public String getSql2() {
-            List<String> list = new ArrayList<>();
-            list.add("id");
-            list.add("age");
-            list.add("createTime");
-            list.add("beforeResult");
 
-            return getUpdateSqlFragment(list);
-        }
 
 
         private String getUpdateSqlFragment(List<String> properties) {
@@ -341,7 +360,7 @@ public class MybatisDomainSqlPool<T> {
 
                 final PropertyColumnMapping propertyColumnMapping = mappingMap.get(split[0]);
                 String column = Objects.isNull(propertyColumnMapping) ? split[0] : propertyColumnMapping.getColumn();
-                String mybatisColumn = StringTool.withMybatisFormat(column);
+                String mybatisColumn = StringTool.withMybatisFormat(propertyColumnMapping.getProperty());
                 if (split.length == 1) {
                     builder.append(column).append("=").append(mybatisColumn);
                 } else {
@@ -420,7 +439,6 @@ public class MybatisDomainSqlPool<T> {
 
                 final String[] split = group.split(",");
                 for (int i = 0; i < split.length; i++) {
-                    System.out.println(split[i]);
                     String child = parseFunction(split[i], defaultMappingMap);
                     builder.append(child);
                     if (i < split.length - 1) {
@@ -490,6 +508,61 @@ public class MybatisDomainSqlPool<T> {
 
 
 
+    }
+
+    /**
+     * 基本操作
+     */
+    private enum OP {
+        /**
+         * 新增
+         */
+        INSERT("INSERT INTO"),
+        /**
+         * 删除
+         */
+        DELETE("DELETE"),
+        /**
+         * 查询
+         */
+        SELECT("SELECT"),
+        /**
+         * 更新
+         */
+        UPDATE("UPDATE"),
+        /**
+         * 新增（忽略重复索引）
+         */
+        INSERT_IGNORE("INSERT IGNORE INTO"),
+
+        ;
+
+
+        /**
+         * 操作命令
+         */
+        String op;
+
+        OP(String op) {
+            this.op = op;
+        }
+
+        String getOp() {
+            return this.op;
+        }
+    }
+
+    private static List<String> splitToList(String str){
+
+        final String s = StringTool.trimAllWhitespace(str);
+        List<String> list = new ArrayList<>();
+        if(StringTool.isNullOrEmpty(s)){
+            return list;
+        }
+        Objects.requireNonNull(s);
+        final String[] split = s.split(",");
+        Collections.addAll(list, split);
+        return list;
     }
 
 

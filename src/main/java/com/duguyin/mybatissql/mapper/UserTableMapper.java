@@ -1,12 +1,10 @@
 package com.duguyin.mybatissql.mapper;
 
 import com.duguyin.mybatissql.UserTable;
-import com.duguyin.mybatissql.tool.MybatisSqlBuilder;
-import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.ResultMap;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
-
-import java.sql.Timestamp;
 
 @Component
 @Mapper

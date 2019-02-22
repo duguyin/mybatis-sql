@@ -2,7 +2,7 @@ package com.duguyin.mybatissql.enums;
 
 /**
  * @ClassName ComparisonOperator
- * @Description
+ * @Description 比较操作类
  * @Author LiuYin
  * @Date 2018/9/28 11:23
  */

@@ -120,7 +120,7 @@ public class MybatisMapping<T> {
 
         if(Objects.nonNull(columnAnnotation)){
             // 设置列名称
-            mapping.setColumn(columnAnnotation.value());
+            mapping.setColumn(StringTool.isNullOrEmpty(columnAnnotation.value()) ? fieldName : columnAnnotation.value());
             // 判断主键并设置
             boolean isPrimaryKey = columnAnnotation.primaryKey();
             mapping.setPrimaryKey(isPrimaryKey);

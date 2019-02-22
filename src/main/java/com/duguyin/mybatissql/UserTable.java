@@ -1,10 +1,13 @@
 package com.duguyin.mybatissql;
 
+import com.duguyin.mybatissql.annotations.Column;
+
 import java.sql.Timestamp;
 
 public class UserTable {
 
     private long id;
+    @Column("name_ss")
     private String name;
     private String userAction;
     private String beforeResult;

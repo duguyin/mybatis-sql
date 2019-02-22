@@ -1,6 +1,6 @@
 package com.duguyin.mybatissql.tool;
 
-import com.duguyin.mybatissql.obj.MybatisDomainSqlPool;
+import com.duguyin.mybatissql.obj.MybatisDomainSql;
 import com.duguyin.mybatissql.obj.MybatisMapping;
 import com.duguyin.mybatissql.obj.PropertyColumnMapping;
 import org.apache.ibatis.mapping.ResultMap;
@@ -10,7 +10,9 @@ import org.apache.ibatis.session.Configuration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
+/**
+ * Mybatis的Sql语句构建器
+ */
 public class MybatisSqlBuilder {
 
     private static  Configuration CONFIGURATION = null;
@@ -22,7 +24,7 @@ public class MybatisSqlBuilder {
     private static final String BASE_FRAGMENT = "_BASE_FRAGMENT";
 
     private static final Map<String, ConcurrentHashMap<String,String>>  SQL_MAP = new ConcurrentHashMap<>();
-    private static  final Map<String, MybatisDomainSqlPool>  MAPPING_MAP = new ConcurrentHashMap<>();
+    private static  final Map<String, MybatisDomainSql>  MAPPING_MAP = new ConcurrentHashMap<>();
 
     private  static <T> void from(Configuration configuration,Class<T> clazz){
         Objects.requireNonNull(clazz);
@@ -31,7 +33,7 @@ public class MybatisSqlBuilder {
         // 缓存到map中，以后直接使用
         final MybatisMapping<T> mapping = MybatisMapping.from(clazz);
         final String name = clazz.getName();
-        MAPPING_MAP.putIfAbsent(name, new MybatisDomainSqlPool<T>(mapping));
+        MAPPING_MAP.putIfAbsent(name, new MybatisDomainSql<>(mapping));
 
         Map<String, PropertyColumnMapping> defaultMappingMap = mapping.getDefaultMappingMap();
         final Set<Map.Entry<String, PropertyColumnMapping>> set = defaultMappingMap.entrySet();
@@ -93,6 +95,10 @@ public class MybatisSqlBuilder {
 
     private String withBrackets(String s) {
         return "(" + s + ")";
+    }
+
+    private String withEscape(String s){
+        return "`" + s + "`";
     }
 
 

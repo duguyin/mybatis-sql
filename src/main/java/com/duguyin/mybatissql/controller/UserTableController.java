@@ -2,7 +2,7 @@ package com.duguyin.mybatissql.controller;
 
 
 import com.duguyin.mybatissql.UserAction;
-import com.duguyin.mybatissql.obj.MybatisDomainSqlPool;
+import com.duguyin.mybatissql.obj.MybatisDomainSql;
 import com.duguyin.mybatissql.obj.MybatisMapping;
 import com.duguyin.mybatissql.service.UserTableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +32,19 @@ public class UserTableController {
     @GetMapping("/user")
     public String user(){
         final MybatisMapping<UserAction> mapping = MybatisMapping.from(UserAction.class);
-        final MybatisDomainSqlPool mybatisDomainSqlPool = new MybatisDomainSqlPool<>(mapping);
+        final MybatisDomainSql mybatisSql = new MybatisDomainSql<>(mapping);
 
-        return mybatisDomainSqlPool.deleteSql();
+//        System.out.println(mybatisSql.baseInsertSql(false));
+//        System.out.println(mybatisSql.baseInsertSql(true));
+//        System.out.println(mybatisSql.baseInsertSql());
+//        System.out.println(mybatisSql.baseUpdateSql("age"));
+//        System.out.println(mybatisSql.baseUpdateSqlByPrimaryKey());
+//        System.out.println(mybatisSql.baseDeleteSql("age"));
+//        System.out.println(mybatisSql.baseDeleteSqlByPrimaryKey());
+        System.out.println(mybatisSql.baseCountSql("id"));
+        System.out.println(mybatisSql.baseSelect("id"));
+        System.out.println(mybatisSql.baseSelectByLimit(2,30));
+        return "ok";
 
 
     }

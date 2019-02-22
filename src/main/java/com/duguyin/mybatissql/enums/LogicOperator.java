@@ -2,7 +2,7 @@ package com.duguyin.mybatissql.enums;
 
 /**
  * @ClassName LogicOperator
- * @Description
+ * @Description 逻辑操作类
  * @Author LiuYin
  * @Date 2018/9/28 11:31
  */
