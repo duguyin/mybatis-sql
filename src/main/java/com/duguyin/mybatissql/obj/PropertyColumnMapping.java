@@ -10,10 +10,15 @@ import org.apache.ibatis.type.JdbcType;
  */
 public class PropertyColumnMapping {
 
+    /** 属性名称*/
     private String property;
+    /** java类型*/
     private Class<?> javaType;
+    /** 列名称*/
     private String column;
+    /** jdbc类型*/
     private JdbcType jdbcType;
+    /** 是否是主键*/
     private boolean primaryKey;
 
 

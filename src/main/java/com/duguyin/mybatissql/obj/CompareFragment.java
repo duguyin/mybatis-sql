@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * @ClassName CompareFragment
- * @Description
+ * @Description 比较片段
  * @Author LiuYin
  * @Date 2018/9/28 11:21
  */

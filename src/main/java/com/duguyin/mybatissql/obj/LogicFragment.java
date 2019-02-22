@@ -12,7 +12,7 @@ import java.util.Objects;
 
 /**
  * @ClassName LogicFragment
- * @Description
+ * @Description 逻辑片段
  * @Author LiuYin
  * @Date 2018/9/28 14:04
  */

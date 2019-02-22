@@ -96,7 +96,7 @@ public class StringTool {
     }
 
     /**
-     * 去掉所用的空白
+     * 去掉所有的空白
      * @param str
      * @return
      */

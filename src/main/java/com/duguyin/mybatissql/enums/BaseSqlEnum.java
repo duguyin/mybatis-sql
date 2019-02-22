@@ -1,8 +1,5 @@
 package com.duguyin.mybatissql.enums;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * 基础sql枚举类
  */
