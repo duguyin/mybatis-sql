@@ -25,10 +25,6 @@ public class LogicFragment {
 
 //    int level = 0;
 
-    public LogicFragment begin(String sugar){
-        return add(createCompareFragment(sugar));
-    }
-
     public LogicFragment(Map<String, PropertyColumnMapping> mappingMap) {
         Objects.requireNonNull(mappingMap);
         this.mappingMap = mappingMap;
@@ -40,7 +36,8 @@ public class LogicFragment {
 
 
 
-    public LogicFragment(String sugar){
+    public LogicFragment(Map<String, PropertyColumnMapping> mappingMap, String sugar){
+        this.setMappingMap(mappingMap);
         add(createCompareFragment(sugar));
     }
 
@@ -68,7 +65,7 @@ public class LogicFragment {
 
         String operatorSugar = split.length < 2 ? null : split[1];
 
-        return new CompareFragment().column(property).value(property).operator(createBySugar(operatorSugar));
+        return new CompareFragment().column(getColumnByProperty(property)).value(StringTool.withMybatisFormat(property)).operator(createBySugar(operatorSugar));
     }
 
     private ComparisonOperator createBySugar(String operatorSugar){
@@ -220,5 +217,24 @@ public class LogicFragment {
 
     public void setMappingMap(Map<String, PropertyColumnMapping> mappingMap) {
         this.mappingMap = mappingMap;
+    }
+
+    public LogicFragment mappingMap(Map<String, PropertyColumnMapping> mappingMapMap){
+        setMappingMap(mappingMapMap);
+        return this;
+    }
+
+
+    private String getColumnByProperty(String property){
+        if(StringTool.isNullOrEmpty(property)){
+            throw new ParseException("property is null or empty");
+        }
+        Objects.requireNonNull(mappingMap);
+        final PropertyColumnMapping propertyColumnMapping = mappingMap.get(property);
+        if(Objects.isNull(propertyColumnMapping)){
+            throw new ParseException("this is no property named "+property);
+        }
+        return propertyColumnMapping.getColumn();
+
     }
 }
