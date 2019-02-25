@@ -1,9 +1,9 @@
 package com.duguyin.mybatissql.tool;
 
+import com.duguyin.mybatissql.obj.MapperAndDomain;
 import com.duguyin.mybatissql.obj.MybatisDomainSql;
 import com.duguyin.mybatissql.obj.MybatisMapping;
 import com.duguyin.mybatissql.obj.PropertyColumnMapping;
-import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
 import org.apache.ibatis.session.Configuration;
@@ -29,14 +29,15 @@ public class MybatisSqlBuilder {
     /** 每个domain类Sql的map，key是domain的简单类名*/
     private static  final Map<String, MybatisDomainSql>  MAPPING_MAP = new ConcurrentHashMap<>();
 
-    private  static <T> void from(Configuration configuration,Class<T> clazz){
+    private  static <T> void from(Configuration configuration,Class mapperType, Class<T> domainType){
         // 非空判断
-        Objects.requireNonNull(clazz);
+        Objects.requireNonNull(mapperType);
+        Objects.requireNonNull(domainType);
         Objects.requireNonNull(configuration);
 
         // 缓存到map中，以后直接使用
-        final MybatisMapping<T> mapping = MybatisMapping.from(clazz);
-        final String name = clazz.getName();
+        final MybatisMapping<T> mapping = MybatisMapping.from(domainType);
+        final String name = domainType.getName();
         MAPPING_MAP.putIfAbsent(name, new MybatisDomainSql<>(mapping));
 
 
@@ -50,10 +51,14 @@ public class MybatisSqlBuilder {
             resultMappings.add(resultMapping);
         }
 
-        String resultMapId = MybatisTool.parseResultMapId(clazz);
+        String resultMapId = mapperType.getName() + "." + MybatisTool.parseResultMapId(domainType);
         // 调用mybatis的类，封装成resultMap映射，默认名称为"_xxx_"
-        final ResultMap resultMap = new ResultMap.Builder(configuration, resultMapId, clazz, resultMappings).build();
-        configuration.addResultMap(resultMap);
+//        final ResultMap resultMap = new ResultMap.Builder(configuration, resultMapId, clazz, resultMappings).build();
+        final ResultMap resultMap1 = new ResultMap.Builder(configuration, resultMapId,  domainType, resultMappings).build();
+//        configuration.addResultMap(resultMap);
+        configuration.addResultMap(resultMap1);
+
+
     }
 
     public static String sql(){
@@ -225,21 +230,19 @@ public class MybatisSqlBuilder {
     }
 
 
+    public static  void from (Configuration configuration, MapperAndDomain... mapperAndDomains){
+        Objects.requireNonNull(mapperAndDomains);
 
-
-
-
-
-
-    public static  void from (Configuration configuration, Class<?>... classes){
-        Objects.requireNonNull(classes);
 
         if(Objects.isNull(CONFIGURATION)){
             CONFIGURATION = configuration;
         }
 
-        for (Class aClass : classes) {
-            from(configuration,aClass);
+        for (MapperAndDomain mapperAndDomain : mapperAndDomains) {
+            Objects.requireNonNull(mapperAndDomain);
+            final Class mapperType = mapperAndDomain.getMapperType();
+            final Class domainType = mapperAndDomain.getDomainType();
+            from(configuration, mapperType, domainType);
         }
     }
 

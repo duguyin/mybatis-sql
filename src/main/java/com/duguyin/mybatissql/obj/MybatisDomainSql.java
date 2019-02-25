@@ -2,7 +2,6 @@ package com.duguyin.mybatissql.obj;
 
 import com.duguyin.mybatissql.enums.LogicOperator;
 import com.duguyin.mybatissql.exceptions.ParseException;
-import com.duguyin.mybatissql.tool.MybatisTool;
 import com.duguyin.mybatissql.tool.MysqlFu;
 import com.duguyin.mybatissql.tool.StringTool;
 
@@ -91,7 +90,7 @@ public class MybatisDomainSql<T> {
                 mybatisSQL.properties.add(v.getProperty());
             }
         });
-        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
+        mybatisSQL.WHERE(new LogicFragment(mapping.getDefaultMappingMap(),conditionProperty));
         return mybatisSQL.getSql();
     }
 
@@ -110,7 +109,7 @@ public class MybatisDomainSql<T> {
      */
     public String baseDeleteSql(String conditionProperty){
         final MybatisSQL mybatisSQL = newSql(OP.DELETE);
-        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
+        mybatisSQL.WHERE(new LogicFragment(mapping.getDefaultMappingMap(),conditionProperty));
         return mybatisSQL.getSql();
     }
 
@@ -154,7 +153,7 @@ public class MybatisDomainSql<T> {
         }
         final MybatisSQL mybatisSQL = newSql(OP.SELECT);
         mapping.getDefaultMappingMap().values().forEach(v -> mybatisSQL.properties.add(v.getProperty()));
-        mybatisSQL.WHERE(new LogicFragment(conditionProperty));
+        mybatisSQL.WHERE(new LogicFragment(mapping.getDefaultMappingMap(),conditionProperty));
         return mybatisSQL.getSql();
 
     }

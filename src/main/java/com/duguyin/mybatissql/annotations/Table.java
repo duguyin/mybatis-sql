@@ -1,7 +1,5 @@
 package com.duguyin.mybatissql.annotations;
 
-import org.springframework.core.annotation.AliasFor;
-
 import java.lang.annotation.*;
 
 @Target({ElementType.TYPE})
